@@ -15,12 +15,8 @@ pub async fn post(
     // TODO: fetch patient ip
     state
         .http_client
-        .post("/issuePrescription/check")
-        .json::<Prescription>(&Prescription {
-            medicine: body.medicine,
-            description: body.description,
-            doctor: body.doctor,
-        })
+        .post("pacjent.pielegniarki.org/issuePrescription")
+        .json::<Prescription>(&body)
         .send()
         .await
         .unwrap();

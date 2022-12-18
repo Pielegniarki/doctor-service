@@ -31,4 +31,8 @@ impl<'a> CollectionSelector<'a> {
     pub fn rating(&self) -> Collection<schemas::Rating> {
         self.db.collection("rating")
     }
+
+    pub fn notification(&self) -> Collection<schemas::Notification> {
+        self.db.collection("notification")
+    }
 }

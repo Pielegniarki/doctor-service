@@ -2,13 +2,13 @@ use std::sync::Arc;
 
 use axum::{Json, response::IntoResponse, extract::State};
 
-use crate::{db::schemas::Rating, app::AppState};
+use crate::{db::schemas::Notification, app::AppState};
 
 pub async fn post(
     State(state): State<Arc<AppState>>,
-    Json(body): Json<Rating>,
+    Json(body): Json<Notification>,
 ) -> impl IntoResponse {
-    state.db.collections().rating().insert_one(body, None).await.unwrap();
+    state.db.collections().notification().insert_one(body, None).await.unwrap();
 
     "Ok"
 }
