@@ -19,29 +19,34 @@ pub struct App;
 impl App {
     fn healthcheck_api() -> Router<Arc<AppState>> {
         Router::new()
-            .route("/http", get(routes::http_healthcheck))
-            .route("/db", get(routes::db_healthcheck))
+            .route("/http", get(routes::healthcheck::http))
+            .route("/db", get(routes::healthcheck::db))
     }
 
-    fn app_api() -> Router<Arc<AppState>> {
+    fn prescription_api() -> Router<Arc<AppState>> {
         Router::new()
-            .route("/issuePrescription", 
-                get(routes::get_issue_prescription)
-                .post(routes::post_issue_prescription)
+            .route("/", 
+                get(routes::issue_prescription::get)
+                .post(routes::issue_prescription::post)
             )
     }
 
+    fn rating_api() -> Router<Arc<AppState>> {
+        Router::new()
+            .route("/", post(routes::rating::post))
+    }
+
     pub async fn serve(db: DB, http_client: reqwest::Client) -> anyhow::Result<()> {
-
-
         let state = Arc::new(AppState { db, http_client });
 
         let app = Router::new()
             .route("/", get(routes::index))
             .nest("/healthcheck", App::healthcheck_api())
+            .nest("/issuePrescription", App::prescription_api())
+            .nest("/rating", App::rating_api())
             .with_state(state);
 
-        let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+        let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
 
         tracing::debug!("listening on {}", addr);
 

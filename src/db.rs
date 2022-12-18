@@ -3,7 +3,6 @@ use mongodb::{Client, Collection, Database};
 pub mod schemas;
 
 pub struct DB {
-    client: Client,
     db: Database
 }
 
@@ -12,10 +11,7 @@ impl DB {
         let client = Client::with_uri_str(uri).await?;
         let db = client.database("pielegniarki");
 
-        Ok(DB {
-            client,
-            db
-        })
+        Ok(DB {db})
     }
 
     pub fn collections(&self) -> CollectionSelector {
@@ -28,7 +24,11 @@ pub struct CollectionSelector<'a> {
 }
 
 impl<'a> CollectionSelector<'a> {
-    pub fn doctor(&self) -> Collection<schemas::doctor::Doctor> {
+    pub fn doctor(&self) -> Collection<schemas::Doctor> {
         self.db.collection("doctor")
+    }
+    
+    pub fn rating(&self) -> Collection<schemas::Rating> {
+        self.db.collection("rating")
     }
 }
