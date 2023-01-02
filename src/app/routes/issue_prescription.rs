@@ -13,13 +13,13 @@ pub async fn post(
     Form(body): Form<Prescription>,
 ) -> impl IntoResponse {
     // TODO: fetch patient ip
-    state
-        .http_client
-        .post("pacjent.pielegniarki.org/issuePrescription")
-        .json::<Prescription>(&body)
-        .send()
-        .await
-        .unwrap();
+    // state
+    //     .http_client
+    //     .post("pacjent.pielegniarki.org/issuePrescription")
+    //     .json::<Prescription>(&body)
+    //     .send()
+    //     .await
+    //     .unwrap();
 
     "Ok"
 }

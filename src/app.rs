@@ -6,59 +6,36 @@ use axum::{
 };
 
 use crate::db::DB;
+use crate::http_client::HttpClient;
 
 mod routes;
+mod types;
 
 pub struct AppState {
     db: DB,
-    http_client: reqwest::Client
+    http_client: HttpClient
 }
 
 pub struct App;
 
 impl App {
-    fn healthcheck_api() -> Router<Arc<AppState>> {
-        Router::new()
-            .route("/http", get(routes::healthcheck::http))
-            .route("/db", get(routes::healthcheck::db))
-    }
-
-    fn prescription_api() -> Router<Arc<AppState>> {
-        Router::new()
-            .route("/", 
-                get(routes::issue_prescription::get)
-                .post(routes::issue_prescription::post)
-            )
-    }
-
-    fn rating_api() -> Router<Arc<AppState>> {
-        Router::new()
-            .route("/", post(routes::rating::post))
-    }
-
-    fn notification_api() -> Router<Arc<AppState>> {
-        Router::new()
-            .route("/", post(routes::notification::post))
-    }
-
-    fn authentication_api() -> Router<Arc<AppState>> {
-        Router::new()
-            .route("/login", get(routes::authentication::login::get))
-    }
-
-    pub async fn serve(db: DB, http_client: reqwest::Client) -> anyhow::Result<()> {
+    pub async fn serve(db: DB, http_client: HttpClient) -> anyhow::Result<()> {
         let state = Arc::new(AppState { db, http_client });
 
         let app = Router::new()
             .route("/", get(routes::index))
-            .nest("/healthcheck", App::healthcheck_api())
-            .nest("/issuePrescription", App::prescription_api())
-            .nest("/rating", App::rating_api())
-            .nest("/notify", App::notification_api())
-            .nest("/auth", App::authentication_api())
+            .nest("/healthcheck", api::healthcheck())
+            .nest("/doctors", api::doctors())
+            .nest("/issuePrescription", api::prescription())
+            .nest("/rating", api::rating())
+            .nest("/notify", api::notification())
+            .nest("/auth", api::authentication())
             .with_state(state);
 
-        let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+        #[cfg(debug_assertions)]
+        let app = app.layer(tower_http::cors::CorsLayer::permissive());
+
+        let addr = SocketAddr::from(([0, 0, 0, 0], 4000));
 
         tracing::debug!("listening on {}", addr);
 
@@ -67,5 +44,44 @@ impl App {
             .await?;
 
         Ok(())
+    }
+}
+
+
+mod api {
+    use super::*;
+
+    pub fn healthcheck() -> Router<Arc<AppState>> {
+        Router::new()
+            .route("/http", get(routes::healthcheck::http))
+            .route("/db", get(routes::healthcheck::db))
+    }
+
+    pub fn doctors() -> Router<Arc<AppState>> {
+        Router::new()
+            .route("/getInfo", get(routes::doctors::get_info))
+    }
+
+    pub fn prescription() -> Router<Arc<AppState>> {
+        Router::new()
+            .route("/", 
+                get(routes::issue_prescription::get)
+                .post(routes::issue_prescription::post)
+            )
+    }
+
+    pub fn rating() -> Router<Arc<AppState>> {
+        Router::new()
+            .route("/", post(routes::rating::post))
+    }
+
+    pub fn notification() -> Router<Arc<AppState>> {
+        Router::new()
+            .route("/", post(routes::notification::post))
+    }
+
+    pub fn authentication() -> Router<Arc<AppState>> {
+        Router::new()
+            .route("/login", get(routes::authentication::login::get))
     }
 }
