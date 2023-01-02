@@ -2,5 +2,7 @@ use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct Doctor {
-    pub name: String
+    #[serde(skip)]
+    pub _id: mongodb::bson::oid::ObjectId,
+    pub name: String,
 }

@@ -1,21 +1,24 @@
-use mongodb::{Client, Collection, Database};
+use mongodb::{Client, Collection, Database, bson::doc};
 
 pub mod schemas;
 
 pub struct DB {
-    client: Client,
     db: Database
 }
 
 impl DB {
     pub async fn new(uri: &str) -> Result<DB, mongodb::error::Error> {
         let client = Client::with_uri_str(uri).await?;
+
+        client
+            .database("admin")
+            .run_command(doc! {"ping": 1}, None)
+            .await?;
+        println!("Connected successfully.");
+
         let db = client.database("pielegniarki");
 
-        Ok(DB {
-            client,
-            db
-        })
+        Ok(DB {db})
     }
 
     pub fn collections(&self) -> CollectionSelector {
@@ -27,8 +30,16 @@ pub struct CollectionSelector<'a> {
     db: &'a Database
 }
 
-impl<'a> CollectionSelector<'a> {
-    pub fn doctor(&self) -> Collection<schemas::doctor::Doctor> {
+impl CollectionSelector<'_> {
+    pub fn doctor(&self) -> Collection<schemas::Doctor> {
         self.db.collection("doctor")
+    }
+    
+    pub fn rating(&self) -> Collection<schemas::Rating> {
+        self.db.collection("rating")
+    }
+
+    pub fn notification(&self) -> Collection<schemas::Notification> {
+        self.db.collection("notification")
     }
 }
