@@ -42,4 +42,8 @@ impl CollectionSelector<'_> {
     pub fn notification(&self) -> Collection<schemas::Notification> {
         self.db.collection("notification")
     }
+
+    pub fn specialty(&self) -> Collection<schemas::Specialty> {
+        self.db.collection("specialty")
+    }
 }

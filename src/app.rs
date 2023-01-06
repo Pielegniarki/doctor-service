@@ -9,7 +9,6 @@ use crate::db::DB;
 use crate::http_client::HttpClient;
 
 mod routes;
-mod types;
 
 pub struct AppState {
     db: DB,
@@ -26,6 +25,7 @@ impl App {
             .route("/", get(routes::index))
             .nest("/healthcheck", api::healthcheck())
             .nest("/doctors", api::doctors())
+            .nest("/specialties", api::specialties())
             .nest("/issuePrescription", api::prescription())
             .nest("/rating", api::rating())
             .nest("/notify", api::notification())
@@ -60,6 +60,12 @@ mod api {
     pub fn doctors() -> Router<Arc<AppState>> {
         Router::new()
             .route("/getInfo", get(routes::doctors::get_info))
+            .route("/listAll", get(routes::doctors::list_all))
+    }
+
+    pub fn specialties() -> Router<Arc<AppState>> {
+        Router::new()
+            .route("/listAll", get(routes::specialties::list_all))
     }
 
     pub fn prescription() -> Router<Arc<AppState>> {
@@ -82,6 +88,6 @@ mod api {
 
     pub fn authentication() -> Router<Arc<AppState>> {
         Router::new()
-            .route("/login", get(routes::authentication::login::get))
+            .route("/login", post(routes::authentication::login::post))
     }
 }
