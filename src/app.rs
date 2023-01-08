@@ -12,7 +12,7 @@ mod routes;
 
 pub struct AppState {
     db: DB,
-    http_client: HttpClient
+    http_client: HttpClient,
 }
 
 pub struct App;
@@ -26,7 +26,6 @@ impl App {
             .nest("/healthcheck", api::healthcheck())
             .nest("/doctors", api::doctors())
             .nest("/specialties", api::specialties())
-            .nest("/issuePrescription", api::prescription())
             .nest("/rating", api::rating())
             .nest("/notify", api::notification())
             .nest("/auth", api::authentication())
@@ -47,7 +46,6 @@ impl App {
     }
 }
 
-
 mod api {
     use super::*;
 
@@ -61,33 +59,22 @@ mod api {
         Router::new()
             .route("/getInfo", get(routes::doctors::get_info))
             .route("/listAll", get(routes::doctors::list_all))
+            .route("/listAllBySpecialty", get(routes::doctors::list_all_by_spec))
     }
 
     pub fn specialties() -> Router<Arc<AppState>> {
-        Router::new()
-            .route("/listAll", get(routes::specialties::list_all))
-    }
-
-    pub fn prescription() -> Router<Arc<AppState>> {
-        Router::new()
-            .route("/", 
-                get(routes::issue_prescription::get)
-                .post(routes::issue_prescription::post)
-            )
+        Router::new().route("/listAll", get(routes::specialties::list_all))
     }
 
     pub fn rating() -> Router<Arc<AppState>> {
-        Router::new()
-            .route("/", post(routes::rating::post))
+        Router::new().route("/", post(routes::rating::post))
     }
 
     pub fn notification() -> Router<Arc<AppState>> {
-        Router::new()
-            .route("/", post(routes::notification::post))
+        Router::new().route("/", post(routes::notification::post))
     }
 
     pub fn authentication() -> Router<Arc<AppState>> {
-        Router::new()
-            .route("/login", post(routes::authentication::login::post))
+        Router::new().route("/login", post(routes::authentication::login::post))
     }
 }

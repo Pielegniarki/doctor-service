@@ -1,7 +1,7 @@
 use std::{sync::Arc, str::FromStr};
 
 use axum::{extract::{State, Query}, response::IntoResponse, Json};
-use mongodb::bson::doc;
+use mongodb::bson::{doc, oid::ObjectId};
 use serde::Deserialize;
 
 use futures::{TryStreamExt};
@@ -43,8 +43,35 @@ pub async fn list_all(
         Err(_) => return Json(vec![])
     };
 
-    let v: Vec<_> = result.try_collect().await.expect("XD");
+    let Ok(doctors) = result.try_collect().await else {
+        return Json(vec![])
+    };
 
 
-    Json(v)
+    Json(doctors)
+}
+
+#[derive(Deserialize)]
+pub struct ListAllBySpecParams {
+    #[serde(rename(deserialize = "specialtyId"))]
+    pub specialty_id: String
+}
+
+pub async fn list_all_by_spec(
+    Query(params): Query<ListAllBySpecParams>,
+    State(state): State<Arc<AppState>>
+) -> impl IntoResponse {
+    let doctors = state.db.collections().doctor();
+
+    let result = match doctors.find(doc! { "specialties": &params.specialty_id }, None).await {
+        Ok(cursor) => cursor,
+        Err(_) => return Json(vec![])
+    };
+
+    let Ok(doctors) = result.try_collect().await else {
+        return Json(vec![])
+    };
+
+
+    Json(doctors)
 }
