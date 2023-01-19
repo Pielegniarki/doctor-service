@@ -1,3 +1,4 @@
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use app::App;
 
 mod app;
@@ -6,9 +7,10 @@ mod http_client;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
-    tracing_subscriber::fmt::init();
-
-    // let db = db::DB::new("mongodb://padmin:zaq1@localhost:27017").await?;
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+        
     let db = db::DB::new("mongodb://localhost:27017").await?;
 
     let client = http_client::HttpClient::new();

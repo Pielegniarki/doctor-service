@@ -2,14 +2,13 @@ use std::{net::SocketAddr, sync::Arc};
 
 use axum::{
     routing::{get, post},
-    Router,
+    Router, middleware::map_request_with_state, http::{Request, HeaderMap, HeaderValue}, extract::State,
 };
 
 use crate::db::DB;
 use crate::http_client::HttpClient;
 
 mod routes;
-mod types;
 
 pub struct AppState {
     db: DB,
@@ -26,10 +25,11 @@ impl App {
             .route("/", get(routes::index))
             .nest("/healthcheck", api::healthcheck())
             .nest("/doctors", api::doctors())
-            .nest("/issuePrescription", api::prescription())
             .nest("/rating", api::rating())
             .nest("/notify", api::notification())
-            .nest("/auth", api::authentication())
+            .route("/login", post(routes::authentication::login))
+            .route("/register", post(routes::authentication::register))
+            .layer(map_request_with_state(state.clone(), map_id))
             .with_state(state);
 
         #[cfg(debug_assertions)]
@@ -54,20 +54,11 @@ mod api {
     pub fn healthcheck() -> Router<Arc<AppState>> {
         Router::new()
             .route("/http", get(routes::healthcheck::http))
-            .route("/db", get(routes::healthcheck::db))
     }
 
     pub fn doctors() -> Router<Arc<AppState>> {
         Router::new()
             .route("/getInfo", get(routes::doctors::get_info))
-    }
-
-    pub fn prescription() -> Router<Arc<AppState>> {
-        Router::new()
-            .route("/", 
-                get(routes::issue_prescription::get)
-                .post(routes::issue_prescription::post)
-            )
     }
 
     pub fn rating() -> Router<Arc<AppState>> {
@@ -79,9 +70,24 @@ mod api {
         Router::new()
             .route("/", post(routes::notification::post))
     }
+}
 
-    pub fn authentication() -> Router<Arc<AppState>> {
-        Router::new()
-            .route("/login", get(routes::authentication::login::get))
+async fn map_id<Body>(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+
+    mut request: Request<Body>
+) -> Request<Body> {
+    if let Some(token) = headers.get("plg-token") {
+        let client = &state.http_client;
+        let token_str = token.to_str().expect("Invalid ASCII in plg-token header");
+
+        if let Ok(Some(db_id)) = client.get_id(token_str).await {
+            if let Ok(hv_id) = HeaderValue::try_from(db_id) {
+                request.headers_mut().append("plg-id", hv_id);
+            }
+        }
     }
+
+    request
 }

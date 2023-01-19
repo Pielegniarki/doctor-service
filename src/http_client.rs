@@ -1,6 +1,20 @@
+use serde::{Serialize, Deserialize};
+
 pub struct HttpClient {
     http: reqwest::Client
 }
+
+const AUTHORIZATION_SERVICE: &'static str = "http://localhost:4002";
+
+#[derive(Serialize)]
+struct GetIdParams<'a> {
+    token: &'a str
+} 
+
+#[derive(Deserialize)]
+struct GetIdResponse {
+    id: Option<String>
+} 
 
 impl HttpClient {
     pub fn new() -> Self {
@@ -9,7 +23,16 @@ impl HttpClient {
         }
     }
 
-    pub fn post(&self) {
-        todo!();
+    pub async fn get_id(&self, token: &str) -> Result<Option<String>, reqwest::Error> {
+        let resp = self
+            .http
+            .post(format!("{}/getId", AUTHORIZATION_SERVICE))
+            .json(&GetIdParams { token })
+            .send()
+            .await?;
+        
+        let obj = resp.json::<GetIdResponse>().await?;
+        
+        Ok(obj.id)
     }
 }

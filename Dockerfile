@@ -1,7 +1,7 @@
 FROM rust:1.66-alpine as builder
 
 RUN USER=root cargo new --bin doctor-service
-WORKDIR ./doctor-service
+WORKDIR /doctor-service
 
 COPY . . 
 
