@@ -78,13 +78,13 @@ async fn map_id<Body>(
 
     mut request: Request<Body>
 ) -> Request<Body> {
-    if let Some(token) = headers.get("plg-token") {
+    if let Some(token) = headers.get("X-PLG-Token") {
         let client = &state.http_client;
         let token_str = token.to_str().expect("Invalid ASCII in plg-token header");
 
         if let Ok(Some(db_id)) = client.get_id(token_str).await {
             if let Ok(hv_id) = HeaderValue::try_from(db_id) {
-                request.headers_mut().append("plg-id", hv_id);
+                request.headers_mut().append("X-PLG-ID", hv_id);
             }
         }
     }

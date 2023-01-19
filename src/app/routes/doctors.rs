@@ -1,23 +1,20 @@
 use std::{sync::Arc, str::FromStr};
 
-use axum::{extract::{State, Query}, response::IntoResponse, Json};
-use mongodb::bson::doc;
+use axum::{extract::{State, Query}, response::IntoResponse, Json, http::HeaderMap};
+use mongodb::bson::{doc, oid::ObjectId};
 use serde::Deserialize;
 
 use crate::app::AppState;
 
-#[derive(Deserialize)]
-pub struct GetInfoParams { 
-    pub id: String
-}
-
 pub async fn get_info(
-    Query(params): Query<GetInfoParams>,
+    headers: HeaderMap,
     State(state): State<Arc<AppState>>
 ) -> impl IntoResponse {
     let doctors = state.db.collections().doctor();
 
-    let Ok(id) = mongodb::bson::oid::ObjectId::from_str(&params.id) else {
+    let id = headers.get("X-PLG-ID").unwrap().to_str().unwrap();
+
+    let Ok(id) = ObjectId::from_str(id) else {
         return Json(Result::Err("Cannot parse ObjectID"));
     };
 

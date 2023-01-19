@@ -4,7 +4,7 @@ pub struct HttpClient {
     http: reqwest::Client
 }
 
-const AUTHORIZATION_SERVICE: &'static str = "http://localhost:4002";
+const AUTHORIZATION_SERVICE: &'static str = "http://localhost:4003";
 
 #[derive(Serialize)]
 struct GetIdParams<'a> {
