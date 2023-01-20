@@ -1,8 +1,7 @@
 use std::{sync::Arc, str::FromStr};
 
-use axum::{extract::{State, Query}, response::IntoResponse, Json, http::HeaderMap};
+use axum::{extract::State, response::IntoResponse, Json, http::HeaderMap};
 use mongodb::bson::{doc, oid::ObjectId};
-use serde::Deserialize;
 
 use crate::app::AppState;
 

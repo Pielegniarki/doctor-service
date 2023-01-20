@@ -1,10 +1,8 @@
-FROM rust:1.66-alpine as builder
+FROM rust:1.66
 
-RUN USER=root cargo new --bin doctor-service
-WORKDIR /doctor-service
-
-COPY . . 
+WORKDIR /app
+COPY . .
 
 RUN cargo build --release
 
-CMD ["./taget/release/doctor-service"]
+CMD ["cargo", "run", "--release"]

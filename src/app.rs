@@ -2,13 +2,17 @@ use std::{net::SocketAddr, sync::Arc};
 
 use axum::{
     routing::{get, post},
-    Router, middleware::map_request_with_state, http::{Request, HeaderMap, HeaderValue}, extract::State,
+    Router, middleware::map_request_with_state,
 };
+use tower::ServiceBuilder;
+use tower_http::{trace::TraceLayer, cors::CorsLayer};
+use token_extractor::token_map;
 
 use crate::db::DB;
 use crate::http_client::HttpClient;
 
 mod routes;
+mod token_extractor;
 
 pub struct AppState {
     db: DB,
@@ -21,6 +25,12 @@ impl App {
     pub async fn serve(db: DB, http_client: HttpClient) -> anyhow::Result<()> {
         let state = Arc::new(AppState { db, http_client });
 
+        let services = ServiceBuilder::new()
+            .layer(TraceLayer::new_for_http());
+
+        #[cfg(debug_assertions)]
+        let services = services.layer(CorsLayer::permissive());
+
         let app = Router::new()
             .route("/", get(routes::index))
             .nest("/healthcheck", api::healthcheck())
@@ -29,15 +39,12 @@ impl App {
             .nest("/notify", api::notification())
             .route("/login", post(routes::authentication::login))
             .route("/register", post(routes::authentication::register))
-            .layer(map_request_with_state(state.clone(), map_id))
-            .with_state(state);
+            .layer(map_request_with_state(state.clone(), token_map))
+            .with_state(state)
+            .layer(services);
 
-        #[cfg(debug_assertions)]
-        let app = app.layer(tower_http::cors::CorsLayer::permissive());
 
         let addr = SocketAddr::from(([0, 0, 0, 0], 4000));
-
-        tracing::debug!("listening on {}", addr);
 
         axum::Server::bind(&addr)
             .serve(app.into_make_service())
@@ -72,22 +79,3 @@ mod api {
     }
 }
 
-async fn map_id<Body>(
-    State(state): State<Arc<AppState>>,
-    headers: HeaderMap,
-
-    mut request: Request<Body>
-) -> Request<Body> {
-    if let Some(token) = headers.get("X-PLG-Token") {
-        let client = &state.http_client;
-        let token_str = token.to_str().expect("Invalid ASCII in plg-token header");
-
-        if let Ok(Some(db_id)) = client.get_id(token_str).await {
-            if let Ok(hv_id) = HeaderValue::try_from(db_id) {
-                request.headers_mut().append("X-PLG-ID", hv_id);
-            }
-        }
-    }
-
-    request
-}

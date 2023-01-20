@@ -1,9 +1,11 @@
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use app::App;
+
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod app;
 mod db;
 mod http_client;
+mod models;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
