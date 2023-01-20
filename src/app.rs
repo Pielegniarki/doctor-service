@@ -36,6 +36,7 @@ impl App {
             .nest("/healthcheck", api::healthcheck())
             .nest("/doctors", api::doctors())
             .nest("/rating", api::rating())
+            .nest("/specialties", api::specialties())
             .nest("/notify", api::notification())
             .route("/login", post(routes::authentication::login))
             .route("/register", post(routes::authentication::register))
@@ -71,6 +72,11 @@ mod api {
     pub fn rating() -> Router<Arc<AppState>> {
         Router::new()
             .route("/", post(routes::rating::post))
+    }
+
+    pub fn specialties() -> Router<Arc<AppState>> {
+        Router::new()
+            .route("/listAll", post(routes::specialties::list_all))
     }
 
     pub fn notification() -> Router<Arc<AppState>> {

@@ -46,4 +46,8 @@ impl CollectionSelector<'_> {
     pub fn credential(&self) -> Collection<schemas::Credential> {
         self.db.collection("credential")
     }
+
+    pub fn specialty(&self) -> Collection<schemas::Specialty> {
+        self.db.collection("specialty")
+    }
 }

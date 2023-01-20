@@ -18,3 +18,4 @@ tower = "0.4.13"
 tower-http = { version = "0.3.5", features = ["cors", "trace"] }
 argon2 = "0.4.1"
 enum-as-inner = "0.5.1"
+futures = "0.3.25"
