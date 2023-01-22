@@ -3,7 +3,6 @@ use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Medicine {
-    #[serde(skip)]
     pub _id: ObjectId,
     pub name: String,
     pub amount: u32,

@@ -26,10 +26,8 @@ impl App {
         let state = Arc::new(AppState { db, http_client });
 
         let services = ServiceBuilder::new()
-            .layer(TraceLayer::new_for_http());
-
-        #[cfg(debug_assertions)]
-        let services = services.layer(CorsLayer::permissive());
+            .layer(TraceLayer::new_for_http())
+            .layer(CorsLayer::permissive());
 
         let app = Router::new()
             .route("/", get(routes::index))
@@ -67,6 +65,8 @@ mod api {
     pub fn doctors() -> Router<Arc<AppState>> {
         Router::new()
             .route("/getInfo", get(routes::doctors::get_info))
+            .route("/listAll", get(routes::doctors::list_all))
+            .route("/listAllWithSpecialty", get(routes::doctors::list_all_with_spec))
     }
 
     pub fn rating() -> Router<Arc<AppState>> {
@@ -76,7 +76,7 @@ mod api {
 
     pub fn specialties() -> Router<Arc<AppState>> {
         Router::new()
-            .route("/listAll", post(routes::specialties::list_all))
+            .route("/listAll", get(routes::specialties::list_all))
     }
 
     pub fn notification() -> Router<Arc<AppState>> {

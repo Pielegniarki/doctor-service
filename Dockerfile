@@ -5,4 +5,6 @@ COPY . .
 
 RUN cargo build --release
 
+EXPOSE 4000
+
 CMD ["cargo", "run", "--release"]
